@@ -16,6 +16,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useTheme } from "@/components/theme-provider"
+import { Switch } from "@/components/ui/switch"
 import {
   ChevronsUpDownIcon,
   InfoIcon,
@@ -33,6 +35,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { theme, setTheme } = useTheme()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -53,22 +56,24 @@ export function NavUser({
             <ChevronsUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="min-w-56 rounded-lg"
+            className="min-w-52 rounded-lg text-xs"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar>
+                <div className="flex items-center gap-2 px-2 py-2 text-left">
+                  <Avatar className="size-8">
                     <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>AD</AvatarFallback>
                   </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs">
-                      Employee Management
+                  <div className="grid flex-1 text-left leading-tight">
+                    <span className="truncate text-xs font-medium">
+                      {user.name}
+                    </span>
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      TeamDesk
                     </span>
                   </div>
                 </div>
@@ -76,18 +81,26 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <SettingsIcon />
+              <DropdownMenuItem className="text-xs">
+                <SettingsIcon className="size-3.5" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MoonIcon />
-                Theme
-              </DropdownMenuItem>
+              <div className="flex items-center gap-2 px-2 py-1.5 text-xs">
+                <MoonIcon className="size-3.5" />
+                <span>Dark Mode</span>
+                <Switch
+                  className="ml-auto"
+                  checked={theme === "dark"}
+                  onCheckedChange={(checked) =>
+                    setTheme(checked ? "dark" : "light")
+                  }
+                  aria-label="Toggle dark mode"
+                />
+              </div>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <InfoIcon />
+            <DropdownMenuItem className="text-xs">
+              <InfoIcon className="size-3.5" />
               About
             </DropdownMenuItem>
           </DropdownMenuContent>
