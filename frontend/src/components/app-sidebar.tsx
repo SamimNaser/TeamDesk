@@ -33,7 +33,7 @@ const data = {
   navMain: [
     {
       title: "DashBoard",
-      url: "#",
+      url: "/",
       icon: <LayoutDashboard />,
       isActive: true,
     },
@@ -43,11 +43,11 @@ const data = {
       icon: <Users />,
       items: [
         {
-          title: "All Employees",
-          url: "#",
+          title: "Add Employee",
+          url: "/employees/add",
         },
         {
-          title: "Add Employees",
+          title: "All Employees",
           url: "#",
         },
       ],
@@ -88,8 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <TerminalIcon className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Employee</span>
-                <span className="truncate text-xs">Management</span>
+                <span className="truncate font-medium">TeamDesk</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

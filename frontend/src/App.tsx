@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
-import { DashboardCards } from "@/components/dashboard-cards"
-import { RecentEmployees } from "@/components/recent-employees"
-import type { Employee } from "@/types/employee"
+import { Routes, Route, Link, useLocation } from "react-router-dom"
+import { Dashboard } from "@/pages/dashboard"
+import { AddEmployee } from "@/pages/add-employee"
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -17,16 +15,19 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/sonner"
 
 export function App() {
-  const [employees, setEmployees] = useState<Employee[]>([])
+  const location = useLocation()
 
-  useEffect(() => {
-    fetch("http://localhost:5001/employees")
-      .then((response) => response.json())
-      .then((data) => setEmployees(data))
-      .catch((error) => console.error("Error fetching employees:", error))
-  }, [])
+  const pageTitles: Record<string, string> = {
+    "/": "Dashboard",
+    "/employees": "All Employees",
+    "/employees/add": "Add Employee",
+    "/departments": "Departments",
+  }
+
+  const currentPage = pageTitles[location.pathname] ?? "Dashboard"
 
   return (
     <SidebarProvider>
@@ -42,21 +43,27 @@ export function App() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Employee Management</BreadcrumbLink>
+                  <Link
+                    to="/"
+                    className="transition-colors hover:text-foreground"
+                  >
+                    Employee Management
+                  </Link>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                  <BreadcrumbPage>{currentPage}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <DashboardCards employees={employees} />
-          <RecentEmployees employees={employees} />
-        </div>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/employees/add" element={<AddEmployee />} />
+        </Routes>
       </SidebarInset>
+      <Toaster position="bottom-center" />
     </SidebarProvider>
   )
 }
