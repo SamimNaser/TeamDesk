@@ -13,17 +13,27 @@ CORS(app, origins=["http://localhost:5173", "http://localhost:5174"])
 
 def is_valid_email(email):
     try:
+        # validate_email() returns validated email information when the
+        # email is valid instead of directly returning True or False.
         validate_email(email, check_deliverability=False)
         return True
     except EmailNotValidError:
+        # If the email is invalid, validate_email() raises
+        # EmailNotValidError, so treat it as invalid and return False.
         return False
 
 
 def is_valid_phone(phone):
     try:
+        # parse() converts the input into a PhoneNumber object.
+        # It may raise NumberParseException if the input cannot be parsed.
         parsed_phone = phonenumbers.parse(str(phone), "IN")
+
+        # is_valid_number() already returns True or False depending on
+        # whether the parsed phone number is considered a valid number.
         return phonenumbers.is_valid_number(parsed_phone)
     except NumberParseException:
+        # If parsing fails, treat the phone number as invalid.
         return False
 
 @app.route("/")
