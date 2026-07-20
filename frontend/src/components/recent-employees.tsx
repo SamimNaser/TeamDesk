@@ -14,6 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { EmployeeAvatar } from "@/components/employee-avatar"
 
 interface RecentEmployeesProps {
   employees: Employee[]
@@ -37,30 +39,52 @@ export function RecentEmployees({ employees }: RecentEmployeesProps) {
           The most recently joined employees in the organization.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="font-bold">Name</TableHead>
-              <TableHead className="font-bold">Department</TableHead>
-              <TableHead className="font-bold">Position</TableHead>
-              <TableHead className="font-bold">Joining Date</TableHead>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-11 pl-6 font-medium">Employee</TableHead>
+              <TableHead className="h-11 font-medium">Department</TableHead>
+              <TableHead className="h-11 font-medium">Role</TableHead>
+              <TableHead className="h-11 pr-6 text-right font-medium">
+                Joined
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {recentEmployees.length > 0 ? (
               recentEmployees.map((employee) => (
-                <TableRow key={employee.id} className="">
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>{employee.department ?? "—"}</TableCell>
-                  <TableCell>{employee.position ?? "—"}</TableCell>
+                <TableRow key={employee.id} className="group">
+                  <TableCell className="py-4 pl-6">
+                    <div className="flex items-center gap-3">
+                      <EmployeeAvatar name={employee.name} />
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{employee.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {employee.email} · ID {employee.id}
+                        </p>
+                      </div>
+                    </div>
+                  </TableCell>
                   <TableCell>
+                    {employee.department ? (
+                      <Badge variant="secondary" className="font-normal">
+                        {employee.department}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {employee.position || "—"}
+                  </TableCell>
+                  <TableCell className="pr-6 text-right text-muted-foreground">
                     {employee.joining_date
                       ? new Date(employee.joining_date).toLocaleDateString(
                           "en-GB",
                           {
                             day: "2-digit",
-                            month: "long",
+                            month: "short",
                             year: "numeric",
                           }
                         )
@@ -70,7 +94,10 @@ export function RecentEmployees({ employees }: RecentEmployeesProps) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell
+                  colSpan={4}
+                  className="h-32 text-center text-muted-foreground"
+                >
                   No employees found.
                 </TableCell>
               </TableRow>

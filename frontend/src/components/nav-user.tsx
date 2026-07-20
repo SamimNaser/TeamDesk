@@ -1,6 +1,7 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import { EmployeeAvatar } from "@/components/employee-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,10 +46,13 @@ export function NavUser({
               <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
             }
           >
-            <Avatar>
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
+            {user.avatar ? (
+              <Avatar>
+                <AvatarImage src={user.avatar} alt={user.name} />
+              </Avatar>
+            ) : (
+              <EmployeeAvatar name={user.name} />
+            )}
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
               <span className="truncate text-xs">{user.email}</span>
@@ -64,10 +68,13 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-2 py-2 text-left">
-                  <Avatar className="size-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>AD</AvatarFallback>
-                  </Avatar>
+                  {user.avatar ? (
+                    <Avatar className="size-8">
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                    </Avatar>
+                  ) : (
+                    <EmployeeAvatar name={user.name} />
+                  )}
                   <div className="grid flex-1 text-left leading-tight">
                     <span className="truncate text-xs font-medium">
                       {user.name}
