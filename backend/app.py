@@ -10,6 +10,20 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173", "http://localhost:5174"])
 # app.config['SECRET_KEY'] = 'sk samim naser'
 
+EMPLOYEE_SELECT = """
+    SELECT
+        e.id,
+        e.name,
+        c.email,
+        c.phone,
+        e.department,
+        e.position,
+        e.salary,
+        e.joining_date
+    FROM employees e
+    LEFT JOIN employee_contacts c ON c.employee_id = e.id
+"""
+
 
 def is_valid_email(email):
     try:
@@ -36,27 +50,69 @@ def is_valid_phone(phone):
         # If parsing fails, treat the phone number as invalid.
         return False
 
+
+def upsert_employee_contact(cursor, employee_id, email=None, phone=None):
+    cursor.execute(
+        "SELECT id FROM employee_contacts WHERE employee_id = %s",
+        (employee_id,),
+    )
+    contact = cursor.fetchone()
+
+    if contact:
+        updates = []
+        values = []
+
+        if email is not None:
+            updates.append("email = %s")
+            values.append(email)
+
+        if phone is not None:
+            updates.append("phone = %s")
+            values.append(phone)
+
+        if not updates:
+            return False
+
+        values.append(employee_id)
+        cursor.execute(
+            f"UPDATE employee_contacts SET {', '.join(updates)} WHERE employee_id = %s",
+            tuple(values),
+        )
+    else:
+        cursor.execute(
+            """
+            INSERT INTO employee_contacts (employee_id, email, phone)
+            VALUES (%s, %s, %s)
+            """,
+            (employee_id, email, phone),
+        )
+
+    return True
+
+
 @app.route("/")
 def home():
     return {"message": "Employee Management API"}
-    
+
+
 # GET -- used to retrieve data
 @app.route("/employees", methods=["GET"])
 def get_employees():
     mydb = get_db_connection()
     cursor = mydb.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM employees")
+    cursor.execute(f"{EMPLOYEE_SELECT} ORDER BY e.id")
     employees = cursor.fetchall()
     cursor.close()
     mydb.close()
     return employees
 
+
 # GET -- used to retrieve a specific employee by ID
-@app.route("/employees/<int:id>", methods=["GET"])
+@app.route("/employees/<int:id>", methods=["GET"])  # type: ignore
 def get_employee(id):
     mydb = get_db_connection()
     cursor = mydb.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM employees WHERE id = %s", (id,))
+    cursor.execute(f"{EMPLOYEE_SELECT} WHERE e.id = %s", (id,))
     employee = cursor.fetchone()
     cursor.close()
     mydb.close()
@@ -65,6 +121,7 @@ def get_employee(id):
         return {"message": f"Employee {id} not found"}, 404
 
     return employee
+
 
 # POST -- used to create new data
 @app.route("/employees", methods=["POST"])
@@ -85,7 +142,7 @@ def add_employee():
         return {"message": "Invalid email address"}, 400
 
     cursor = mydb.cursor()
-    cursor.execute("SELECT id FROM employees WHERE email = %s", (email,))
+    cursor.execute("SELECT id FROM employee_contacts WHERE email = %s", (email,))
     existing_employee = cursor.fetchone()
 
     if existing_employee:
@@ -104,29 +161,26 @@ def add_employee():
     salary = data.get("salary")
     joining_date = data.get("joining_date")
 
-    query = """
-    INSERT INTO employees
-    (name, email, phone, department, position, salary, joining_date)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """
-
-    values = (
-        name,
-        email,
-        phone,
-        department,
-        position,
-        salary,
-        joining_date
-    )
-
-    cursor.execute(query, values)
-    mydb.commit()
-    cursor.close()
-    mydb.close()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO employees
+            (name, department, position, salary, joining_date)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (name, department, position, salary, joining_date),
+        )
+        employee_id = cursor.lastrowid
+        upsert_employee_contact(cursor, employee_id, email, phone)
+        mydb.commit()
+    except Exception:
+        mydb.rollback()
+        raise
+    finally:
+        cursor.close()
+        mydb.close()
 
     return {"message": "Employee added successfully"}, 201
-
 
 
 # PATCH -- used to partially update existing employee data
@@ -151,8 +205,12 @@ def update_employee(id):
 
     if "email" in data:
         cursor.execute(
-            "SELECT id FROM employees WHERE email = %s AND id != %s",
-            (data["email"], id)
+            """
+            SELECT employee_id
+            FROM employee_contacts
+            WHERE email = %s AND employee_id != %s
+            """,
+            (data["email"], id),
         )
         existing_employee = cursor.fetchone()
 
@@ -166,30 +224,45 @@ def update_employee(id):
         mydb.close()
         return {"message": "Invalid phone number"}, 400
 
-    allowed_fields = ["name", "email", "phone", "department", "position", "salary", "joining_date"]
+    employee_fields = ["name", "department", "position", "salary", "joining_date"]
     updates = []
     values = []
 
-    for field in allowed_fields:
+    for field in employee_fields:
         if field in data:
             updates.append(f"{field} = %s")
             values.append(data[field])
 
-    if not updates:
+    contact_changed = "email" in data or "phone" in data
+
+    if not updates and not contact_changed:
         cursor.close()
         mydb.close()
         return {"message": "No valid fields provided"}, 400
 
-    query = f"UPDATE employees SET {', '.join(updates)} WHERE id = %s"
-    values.append(id)
+    try:
+        if updates:
+            query = f"UPDATE employees SET {', '.join(updates)} WHERE id = %s"
+            values.append(id)
+            cursor.execute(query, tuple(values))
 
-    cursor.execute(query, tuple(values))
-    mydb.commit()
-    cursor.close()
-    mydb.close()
+        if contact_changed:
+            upsert_employee_contact(
+                cursor,
+                id,
+                data.get("email") if "email" in data else None,
+                data.get("phone") if "phone" in data else None,
+            )
+
+        mydb.commit()
+    except Exception:
+        mydb.rollback()
+        raise
+    finally:
+        cursor.close()
+        mydb.close()
 
     return {"message": f"Employee {id} updated"}
-
 
 
 # DELETE -- removes an employee by ID
@@ -205,12 +278,14 @@ def delete_employee(id):
         mydb.close()
         return {"message": f"Employee {id} not found"}, 404
 
+    cursor.execute("DELETE FROM employee_contacts WHERE employee_id = %s", (id,))
     cursor.execute("DELETE FROM employees WHERE id = %s", (id,))
     mydb.commit()
     cursor.close()
     mydb.close()
 
     return {"message": f"Employee {id} deleted"}
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
