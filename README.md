@@ -1,4 +1,4 @@
-# Employee Management System
+# Team Desk
 
 A full-stack employee management application for storing, viewing, updating, and deleting employee records. The project uses a React frontend, a Flask REST API, and a MySQL database.
 
@@ -19,6 +19,7 @@ A full-stack employee management application for storing, viewing, updating, and
 - TypeScript
 - Vite
 - Tailwind CSS
+- ShadCN
 
 **Backend**
 
@@ -40,8 +41,7 @@ employee-management/
 ├── backend/
 │   ├── app.py
 │   ├── database.py
-│   ├── requirements.txt
-│   └── separate_employee_contacts.sql
+│   └── requirements.txt
 └── frontend/
     ├── src/
     ├── package.json
@@ -185,7 +185,7 @@ Example body:
   "department": "Engineering",
   "position": "Software Developer",
   "salary": 95000,
-  "joining_date": "2026-08-04"
+  "joining_date": "2026-07-17"
 }
 ```
 
@@ -221,9 +221,3 @@ The backend validates:
 - `email` must be a valid email format
 - `email` must be unique
 - `phone` must be a valid Indian phone number when provided
-
-## Notes
-
-- The frontend still sends and receives `email` and `phone` as normal employee fields.
-- The backend handles joining and updating the `employee_contacts` table internally.
-- Database credentials are currently stored directly in `backend/database.py`; for production, move them into environment variables.
