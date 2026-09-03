@@ -11,6 +11,20 @@ A full-stack employee management application for storing, viewing, updating, and
 - Store contact information in a separate related table
 - MySQL-backed persistent storage
 
+## Screenshots
+
+### Dashboard
+
+![Dashboard](frontend/public/dashboard.jpeg)
+
+### All Employees
+
+![All Employees](frontend/public/all-employee.jpeg)
+
+### Add Employee
+
+![Add Employee](frontend/public/add-employee.jpeg)
+
 ## Tech Stack
 
 **Frontend**
@@ -36,17 +50,20 @@ A full-stack employee management application for storing, viewing, updating, and
 
 ## Project Structure
 
-```text
+````text
 employee-management/
 ├── backend/
 │   ├── app.py
 │   ├── database.py
 │   └── requirements.txt
 └── frontend/
+    ├── public/
+    │   ├── add-employee.jpeg
+    │   ├── all-employee.jpeg
+    │   └── dashboard.jpeg
     ├── src/
     ├── package.json
     └── vite.config.ts
-```
 
 ## Database Design
 
@@ -54,7 +71,7 @@ The database is named:
 
 ```text
 employee_management
-```
+````
 
 The current schema uses two tables:
 
